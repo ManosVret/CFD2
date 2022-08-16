@@ -12,7 +12,7 @@ warning on
 % 00D#MMXXI#
 
 % This file contains the skeleton of the program which will solve the lid
-% driven cavity problem on a unit square. The parts that have to be
+% driven cavity problem on 	 unit square. The parts that have to be
 % supplemented are described in the assignment.
 %
 % The pieces that need to be filled in are indicated
@@ -25,7 +25,7 @@ warning on
 %
 
 Re = 1000;              % Reynolds number
-N = 32;                 % Number of volumes in the x- and y-direction
+N = 2;                 % Number of volumes in the x- and y-direction
 Delta = 1/N;            % uniform spacing to be used in the mapping to compute tx
 
 filename = "results_N_"+N+".mat"; %filename to save workspace to for post-processing
@@ -92,6 +92,7 @@ u = zeros(2*N*(N+1),1);
 
 % Set up the Incindence matrix 'tE21' which connects the fluxes to the
 % volumes. Use the orientation described in the assignment.
+
 Y = (N+2)^2 - 4;
 X = 2*N^2 + 6*N;
 tE21 = zeros( Y , X );
@@ -124,7 +125,7 @@ for i = 1:N
 end
 tE21 = sparse(tE21);
 
-
+        
 
 
 

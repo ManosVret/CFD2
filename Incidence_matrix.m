@@ -36,5 +36,10 @@ for i = 1:N
     end
 end
 
+tE21p = sparse(A);
+
+tE21 = [];
+
+
 
 
