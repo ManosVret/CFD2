@@ -25,7 +25,7 @@ warning on
 %
 
 Re = 1000;              % Reynolds number
-N = 2;                 % Number of volumes in the x- and y-direction
+N = 20;                 % Number of volumes in the x- and y-direction
 Delta = 1/N;            % uniform spacing to be used in the mapping to compute tx
 
 filename = "results_N_"+N+".mat"; %filename to save workspace to for post-processing
@@ -87,7 +87,7 @@ dt = min(min(h),0.5*Re*min(h)^2);
 %   are prescribed by the boundary conditions
 %
 %   The vector u contains the *inner-oriented* circulations as unknowns
-
+%%
 u = zeros(2*N*(N+1),1);
 
 % Set up the Incindence matrix 'tE21' which connects the fluxes to the
@@ -123,16 +123,38 @@ for i = 1:N
         tE21(pos, bottom + 2*N + 3) = 1;
     end
 end
-tE21 = sparse(tE21);
-
-        
-
 
 
 %
 %  Inserting boundary conditions for normal velocity components and store
 %  this part in the vector u_norm, see assignemnt.
 %
+for i = 1:N
+    tE21(1:end,i) = 0;
+    tE21(1:end,2*N*N + 6*N - i +1) = 0;
+    tE21(1:end, 2*N+1 + (i-1)*(2*N+3)) = 0;
+    tE21(1:end, 2*N+1 + (i-1)*(2*N+3)+N+2) = 0;
+end
+
+
+sums = sum(abs(tE21))-2;
+tE21(:,find(sums)) = [];
+A = tE21;
+for j = 1:N 
+    for i = 1:N+1
+        tE21 = [tE21, tE21(1:end, j+ (i-1)*(2*N+1))];
+        tE21(1:end, j+ (i-1)*(2*N+1)) = 0;
+    end
+end
+
+sums = sum(abs(tE21))-2;
+tE21(:,find(sums)) = [];
+B = tE21;
+tE21 = sparse(tE21);
+A == B    
+
+%%
+
 
 %  Set up the sparse, outer-oriented incidence matrix tE10.
 
