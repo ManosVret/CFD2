@@ -139,7 +139,7 @@ end
 
 sums = sum(abs(tE21))-2;
 tE21(:,find(sums)) = [];
-A = tE21;
+
 for j = 1:N 
     for i = 1:N+1
         tE21 = [tE21, tE21(1:end, j+ (i-1)*(2*N+1))];
@@ -149,9 +149,8 @@ end
 
 sums = sum(abs(tE21))-2;
 tE21(:,find(sums)) = [];
-B = tE21;
+
 tE21 = sparse(tE21);
-A == B    
 
 %%
 
