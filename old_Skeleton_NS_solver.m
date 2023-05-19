@@ -25,7 +25,7 @@ warning on
 %
 
 Re = 1000;              % Reynolds number
-N = 3;                 % Number of volumes in the x- and y-direction
+N = 1;                 % Number of volumes in the x- and y-direction
 Delta = 1/N;            % uniform spacing to be used in the mapping to compute tx
 
 filename = "results_N_"+N+".mat"; %filename to save workspace to for post-processing
@@ -129,6 +129,27 @@ end
 %  Inserting boundary conditions for normal velocity components and store
 %  this part in the vector u_norm, see assignemnt.
 %
+
+ntE21 = [];
+idx = 2;
+for i=1:N-1
+    for j=1:N+1
+        ntE21 = [ntE21, tE21(:,idx)];
+        idx = idx+1;
+    end
+    idx = idx + 2;
+end
+for j=1:N+1
+    ntE21 = [ntE21, tE21(:,idx)];
+    idx = idx+1;
+end
+idx = idx + 1 + N;
+for i = 1:(N*(N+1))
+    ntE21 = [ntE21, tE21(:,idx)];
+    idx = idx+1;
+end
+u_norm = zeros(4*N, 1);
+
 for i = 1:N
     tE21(1:end,i) = 0;
     tE21(1:end,2*N*N + 6*N - i +1) = 0;
@@ -151,8 +172,7 @@ sums = sum(abs(tE21))-2;
 tE21(:,find(sums)) = [];
 
 % tE21 = sparse(tE21);
-
-%%
+%
 
 %  Set up the sparse, outer-oriented incidence matrix tE10.
 
@@ -180,9 +200,9 @@ for i=1:N
         act2 = N + 2 + (i-1)*(N+2) + j;
         E10(1 + (i-1)*(N+1) + j, act2) = 1;
         
-%         act3 = i*(N+2) + j ;
-%         E10(N*(N+1) + j + (i-1)*N + 1, act3) = 1;
-%         E10(N*(N+1) + j + (i-1)*N + N + 1, act3) = -1;
+        act3 = i*(N+2) + j ;
+        E10(N*(N+1) + j + (i-1)*N + 1, act3) = 1;
+        E10(N*(N+1) + j + (i-1)*N + N + 1, act3) = -1;
     end
 end
 

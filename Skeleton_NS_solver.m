@@ -12,7 +12,7 @@ warning on
 % 00D#MMXXI#
 
 % This file contains the skeleton of the program which will solve the lid
-% driven cavity problem on 	 unit square. The parts that have to be
+% driven cavity problem on a unit square. The parts that have to be
 % supplemented are described in the assignment.
 %
 % The pieces that need to be filled in are indicated
@@ -32,7 +32,7 @@ filename = "results_N_"+N+".mat"; %filename to save workspace to for post-proces
 
 % Determine a suitable time step and stopping criterion, tol
 
-tol = 0.1  ;             % tol determines when steady state is reached and the program terminates
+tol =   1e-6;             % tol determines when steady state is reached and the program terminates
 
 % wall velocities
 U_wall_top = -1;
@@ -88,131 +88,35 @@ dt = min(min(h),0.5*Re*min(h)^2);
 %
 %   The vector u contains the *inner-oriented* circulations as unknowns
 
-%%
+u = zeros(2*N*(N+1),1);
 
 % Set up the Incindence matrix 'tE21' which connects the fluxes to the
 % volumes. Use the orientation described in the assignment.
-u = zeros(2*N*(N+1),1);
-Y = (N+2)^2 - 4;
-X = 2*N^2 + 6*N;
-tE21 = zeros( Y , X );
-
-for i = 1:N
-    % Cells with vertical fluxes
-    tE21(i,i) = -1;
-    tE21(i,i+N) = 1;
-
-    tE21(Y+1-i,X+1-i) = 1;
-    tE21(Y+1-i,X+1-i-N) = -1;
-    
-    % Cells with horizontal fluxes
-    tE21((N+1) + (N+2)*(i-1) , (2*N+1) + (2*N+3)*(i-1)) = -1;
-    tE21((N+1) + (N+2)*(i-1) , (2*N+1) + (2*N+3)*(i-1) + 1) = 1;
-
-    tE21((N+1) + (N+2)*(i-1) +N+1, (2*N+1) + (2*N+3)*(i-1) +N+1) = -1;
-    tE21((N+1) + (N+2)*(i-1) +N+1, (2*N+1) + (2*N+3)*(i-1) + 1 +N+1) = 1; 
-
-    % Cells with all 4 fluxes
-    posleft = (N+2)*i;
-    for j = 1:N
-        pos = posleft + j-1;
-        bottom = (N+1) + (2*N+3)*(i-1) +j-1;
-        tE21(pos, bottom) = -1;
-        tE21(pos, bottom + N+1) = -1;
-        tE21(pos, bottom + N+2) = 1;
-        tE21(pos, bottom + 2*N + 3) = 1;
-    end
-end
-
 
 %
 %  Inserting boundary conditions for normal velocity components and store
 %  this part in the vector u_norm, see assignemnt.
 %
-for i = 1:N
-    tE21(1:end,i) = 0;
-    tE21(1:end,2*N*N + 6*N - i +1) = 0;
-    tE21(1:end, 2*N+1 + (i-1)*(2*N+3)) = 0;
-    tE21(1:end, 2*N+1 + (i-1)*(2*N+3)+N+2) = 0;
-end
-
-
-sums = sum(abs(tE21))-2;
-tE21(:,find(sums)) = [];
-
-for j = 1:N 
-    for i = 1:N+1
-        tE21 = [tE21, tE21(1:end, j+ (i-1)*(2*N+1))];
-        tE21(1:end, j+ (i-1)*(2*N+1)) = 0;
-    end
-end
-
-sums = sum(abs(tE21))-2;
-tE21(:,find(sums)) = [];
-
-% tE21 = sparse(tE21);
-
-%%
+[tE21, boundary, u_norm] = maketE21(N);
 
 %  Set up the sparse, outer-oriented incidence matrix tE10.
-
-
+[tE10] = maketE10(N);
 
 %  Set up the sparse, inner-oriented  incidence matrix E10
-Y = 2*(N+1)*N;
-X = N^2 + 4*N;
-E10 = zeros( Y , X );
-
-
-for i=1:N
-    ix_bottom = N*(N+1) + i;
-    E10(ix_bottom,i) = -1;
-    
-    ix_top = Y+1-i;
-    E10(ix_top,X-i+1) = 1;
-end
-
-for i=1:N
-    for j=0:N
-        act1 = N + 1 + (i-1)*(N+2) + j;
-        E10(1 + (i-1)*(N+1) + j, act1) = -1;
-        
-        act2 = N + 2 + (i-1)*(N+2) + j;
-        E10(1 + (i-1)*(N+1) + j, act2) = 1;
-        
-%         act3 = i*(N+2) + j ;
-%         E10(N*(N+1) + j + (i-1)*N + 1, act3) = 1;
-%         E10(N*(N+1) + j + (i-1)*N + N + 1, act3) = -1;
-    end
-end
-
-for i=1:N
-    for j=0:N-1
-        act3 = i*(N+2) + j ;
-        E10(N*(N+1) + j + (i-1)*N + 1, act3) = 1;
-        E10(N*(N+1) + j + (i-1)*N + N + 1, act3) = -1;
-    end
-end
-
-
-% E10 = sparse(E10);
-
-
-%%    
+E10 = tE21'.*-1;
 
 %  Set up the (extended) sparse, inner-oriented incidence matrix E21
-
+E21 = tE10';
 
 %  Split off the prescribed tangential velocity and store this in 
 %  the vector u_pres
-
+u_pres = bdy_vel(U_wall_bot, U_wall_top, V_wall_left, V_wall_right, h, N);
 
 %  Set up the Hodge matrices Ht11 and H1t1
-
+[Ht11, H1t1] = hodges11(h, th, N);
 
 %  Set up the Hodge matrix Ht02
-
-
+[Ht02] = hodget02(h, N);
 
 %
 % The prescribed velocties will play a role in the momentum equation
@@ -272,7 +176,7 @@ while diff > tol
     %grid is different (left to right for ux_xi and bottom to top for
     %uy_xi)
     
-    xi = Ht02@E21*u + u_pres_vort;
+    xi = Ht02*E21*u + u_pres_tvort;
     
     for i=1:N+1
         for j=1:N+1
@@ -317,13 +221,13 @@ while diff > tol
     
     %
     %  Every other 1000 iterations check whether you approach steady state
-    %  and check whether yopu satisfy conservation of mass. The largest
+    %  and check whether you satisfy conservation of mass. The largest
     %  rate at which mass is destroyed or created is denoted by 'maxdiv'.
     %  This number should be very small, in the order of machine precision.
     
     if mod(iter,1000) == 0
     
-        maxdiv = max(DIV*u + u_norm) 
+        maxdiv = max(DIV*u + u_norm)
         
         diff = max(abs(u-uold))/dt
         
@@ -333,3 +237,10 @@ end
 
 
 
+
+% P = P(p, N);
+% [X,Y] = staggered(tx);
+
+% contour(X,Y,P,'LevelList',[0.3 0.17 0.12 0.11 0.09 0.07 0.05 0.02 0 -0.002])
+
+% pn = pressure_plot(p, tx, th, N);
