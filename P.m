@@ -11,9 +11,6 @@ for i = 1:(N+2)
         count = count +1;
         end
 
-   
-
-
     %middle columns consist of inner points and two boundary at each end
     elseif i == N+2
         for j = 1:N
@@ -34,10 +31,7 @@ for i = 1:(N+2)
     end
     
 
-
-
-
 end
-P = P - P((N+1)/2,(N+1)/2);
+P = P - P(round((N+1)/2),round((N+1)/2));
 end
 

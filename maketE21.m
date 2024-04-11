@@ -89,7 +89,7 @@ for j=1:n+1
 end
 
 %vertical fluxes
-for i = 1:n+1;
+for i = 1:n+1
     bdy = [bdy, btE21(:,idx)];
     idx = idx + 1;
 end
